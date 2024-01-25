@@ -1,0 +1,12 @@
+---
+- name: Start The Hardening Process
+  hosts: ALL
+  become: yes
+  become_user: root
+  gather_facts: yes
+
+  tasks:
+  - name: 1.1.1.1 Ensure mounting of cramfs filesystems is disabled (Automated)
+    modprobe:
+      name: cramfs
+      state: absent
