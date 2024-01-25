@@ -1,6 +1,6 @@
 ---
 schemaVersion: "2.2"
-description: "enza Hardening steps based on PCI CIS Local Documents"
+description: "Hardening steps based on PCI CIS Local Documents"
 mainSteps:
 - action: "aws:runShellScript"
   name: "runBashCommand"
@@ -9,11 +9,11 @@ mainSteps:
 
         #!/bin/bash
 
-        mkdir -p /var/log/amazon/ssm/documents
-        touch /var/log/amazon/ssm/documents/hardening.log
+        mkdir -p /var/log/path
+        touch /var/log/path/hardening.log
 
 
-        log_file="/var/log/amazon/ssm/documents/hardening.log"
+        log_file="/var/log/path/hardening.log"
 
         # Function to log messages
         log() {

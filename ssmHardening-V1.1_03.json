@@ -346,7 +346,7 @@
           "fi",
 
 
-          "# configure rsyslog based on enza configuartion",
+          "# configure rsyslog",
           "if grep -i '*.* @1.1.10.10:0' /etc/rsyslog.conf; then",
           "log \"INFO\" \"INFO  The 1.1.10.10 IP has been configured already, Nothing to do\"",
           "else",
