@@ -1,0 +1,88 @@
+{
+    "schemaVersion": "2.2",
+    "description": "Use this document to deploy and configure Sophos antivirus ",
+    "mainSteps": [
+      {
+        "action": "aws:runShellScript",
+        "name": "runShellScript",
+        "precondition": {
+          "StringEquals": [
+            "platformType",
+            "Linux"
+          ]
+        },
+        "inputs": {
+          "runCommand": [
+
+            "#!/bin/bash",
+
+            "mkdir -p /var/log/path",
+            "touch /var/log/path/hardening.log",
+            "log_file=/var/log/path/hardening.log",
+
+            "# Function to log messages",
+            "log() {",
+            "local log_level=$1",
+            "local message=$2",
+            "local timestamp=$(date +'%Y-%m-%d %H:%M:%S')",
+            "echo \"[$timestamp] [$log_level] - $message\" >> $log_file",
+            "}",
+
+            "# 1.1.1.1 Ensure mounting of cramfs filesystems is disabled (Automated)",
+            "log \"INFO\" \"1.1.1.1 Ensure mounting of cramfs filesystems is disabled (Automated)\"",
+            "# Check if the cramfs module is loaded",
+            "if lsmod | grep -q cramfs; then",
+            "log \"INFO\" \"cramfs module is loaded, Unloading it now\"",
+
+            "# Unload the cramfs module",
+            "rmmod cramfs",
+            "if [ $? -eq 0 ]; then",
+            "log \"INFO\" \"cramfs module successfully unloaded\"",
+            "else",
+            "log \"INFO\" \"failed to unload cramfs module\"",
+            "fi",
+            "else",
+            "log \"INFO\" \"cramfs module is not loaded already, Nothing to do\"",
+            "fi",
+
+            "# Check if cramfs is blacklisted",
+            "if grep -E '^blacklist\\s+cramfs' /etc/modprobe.d/*; then",
+            "log \"INFO\" \"cramfs is blacklisted already\"",
+            "else",
+            "# Append to cramfs.conf",
+            "printf 'install cramfs /bin/false\nblacklist cramfs\n' >> /etc/modprobe.d/cramfs.conf",
+            "log \"INFO\" \"cramfs has been added to the blacklist Successfully\"",
+            "fi",
+            
+
+
+            "# 1.1.1.2 Ensure mounting of squashfs filesystems is disabled (Automated)",
+            "# Check if the squashfs module is loaded",
+
+            "if lsmod | grep squashfs; then",
+                "log \"INFO\" \"squashfs module is loaded, Unloading it now\"",
+
+                "# remove the squashfs module",
+                "rmmod squashfs",
+                "if [ $? -eq 0 ]; then",
+                    "log \"INFO\" \"squashfs module successfully unloaded\"",
+                "else",
+                    "log \"INFO\" \"failed to unload the squashfs module\"",
+                "fi",
+            "else",
+            "log \"INFO\" \"squashfs module is not loaded\"",
+            "fi",
+            "# Check if the squashfs is blacklisted",
+            "if grep -E \"^blacklist\\s+squashfs\" /etc/modprobe.d/*; then",
+            "log \"INFO\" \"squashfs is blacklisted\"",
+            "else",
+            "# Append to squashfs.conf",
+            "printf \"install squashfs /bin/false\nblacklist squashfs\n\" >> /etc/modprobe.d/squashfs.conf",
+            "log \"INFO\" \"squashfs has been added to the blacklist\"",
+            "fi"
+
+          ]
+        }
+      }
+    ]
+  }

@@ -1,0 +1,60 @@
+---
+schemaVersion: "2.2"
+description: "enza Hardening steps based on PCI CIS Local Documents"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "runBashCommand"
+  inputs:
+    Command: |
+
+        #!/bin/bash
+
+        mkdir -p /var/log/amazon/ssm/documents
+        touch /var/log/amazon/ssm/documents/hardening.log
+
+
+        log_file="/var/log/amazon/ssm/documents/hardening.log"
+
+        # Function to log messages
+        log() {
+            local log_level="$1"
+            local message="$2"
+            local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+            echo "[$timestamp] [$log_level] - $message" > "$log_file"
+        }
+
+        # 1.1.1.1 Ensure mounting of cramfs filesystems is disabled (Automated)
+        
+        log "INFO" "1.1.1.1 Ensure mounting of cramfs filesystems is disabled (Automated)"
+
+        # Check if the cramfs module is loaded
+        if lsmod | grep -q cramfs; then
+
+            log "INFO" "cramfs module is loaded, Unloading it now"
+        
+            # Unload the cramfs module
+            rmmod cramfs
+        
+            if [ $? -eq 0 ]; then
+
+                log "INFO" "cramfs module successfully unloaded"
+            else
+
+                log "INFO" "failed to unload cramfs module"
+            fi
+        else
+
+            log "INFO" "cramfs module is not loaded already, Nothing to do"
+        fi
+        
+        
+        # Check if cramfs is blacklisted
+        if grep -E "^blacklist\s+cramfs" /etc/modprobe.d/*; then
+        
+            log "INFO" "cramfs is blacklisted already"
+        else
+            # Append to cramfs.conf
+            printf "install cramfs /bin/false\nblacklist cramfs\n" >> /etc/modprobe.d/cramfs.conf
+        
+            log "INFO" "cramfs has been added to the blacklist Successfully"
+        fi
