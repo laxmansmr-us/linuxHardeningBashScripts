@@ -19,4 +19,4 @@ printf "
         /usr/lib/rsyslog/rsyslog-rotate
     endscript
 }
-" >> /etc/logrotate.d/bashCommandsCollection_SISA
+" >> /etc/logrotate.d/file
