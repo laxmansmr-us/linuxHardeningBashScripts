@@ -16,9 +16,9 @@
 
           "#!/bin/bash",
 
-          "mkdir -p /var/log/path",
-          "touch /var/log/path/hardening.log",
-          "log_file=/var/log/path/hardening.log",
+          "mkdir -p /var/log/amazon/ssm/documents",
+          "touch /var/log/amazon/ssm/documents/hardening.log",
+          "log_file=/var/log/amazon/ssm/documents/hardening.log",
 
           "# Function to log messages",
           "log() {",
@@ -289,9 +289,9 @@
           "if [ -z \"$users\" ]; then",
           "log \"INFO\" \"There's no users have empty password field in /etc/shadow file\"",
           "else",
-          "log \"INFO\" \"The Following users have not password filed $users, Working on configure it now\"",
+          "log \"INFO\" \"The Following users have not password filed $users, Working on lock them now\"",
           "for user in $users; do",
-          "log \"INFO\" \"The Following users have not password filed: $users, Working on configure it now\"",
+          "log \"INFO\" \"The Following users have not password filed: $users, Working on lock them now\"",
           "passwd -l \"$user\"",
           "if [ $? -eq 0 ]; then",
           "log \"INFO\" \"The follwoing user has been locked successfully: $user\"",
@@ -346,18 +346,18 @@
           "fi",
 
 
-          "# configure rsyslog",
-          "if grep -i '*.* @1.1.10.10:0' /etc/rsyslog.conf; then",
-          "log \"INFO\" \"INFO  The 1.1.10.10 IP has been configured already, Nothing to do\"",
+          "# configure rsyslog based on enza configuartion",
+          "if grep -i '*.* @10.50.20.50:5514' /etc/rsyslog.conf; then",
+          "log \"INFO\" \"INFO  The 10.50.20.50 IP has been configured already, Nothing to do\"",
           "else",
-          "log \"INFO\" \"INFO The 1.1.10.10 have not configured, Working on set it now\"",
+          "log \"INFO\" \"INFO The 10.50.20.50 have not configured, Working on set it now\"",
           "printf \"",
-          "*.* @1.1.10.10:0\" >> /etc/rsyslog.conf",
+          "*.* @10.50.20.50:5514\" >> /etc/rsyslog.conf",
           "systemctl --now restart rsyslog",
           "if [ $? -eq 0 ]; then",
-          "log \"INFO\" \"INFO The 1.1.10.10 have configured Successfully to send rsyslog\"",
+          "log \"INFO\" \"INFO The 10.50.20.50 have configured Successfully to send rsyslog\"",
           "else",
-          "log \"INFO\" \"INFO failed to set The 1.1.10.10 in rsys configurtions to send logs\"",
+          "log \"INFO\" \"INFO failed to set The 10.50.20.50 in rsys configurtions to send logs\"",
           "fi ",
           "fi",
 
@@ -411,10 +411,31 @@
           "# CVE-2023-48795 | https://alas.aws.amazon.com/cve/html/CVE-2023-48795.html",
           "if grep -i \"Amazon linux\" /etc/os-release; then",
               "echo \"The Machine OS is Amazon Linux, Will handel the subpolicy values and OpenSSH (CVE-2023-48795) by updating the OpenSSH Package\"",
-              "yum update openssh >> /var/log/path/hardening.log",
+              "yum update openssh >> /var/log/amazon/ssm/documents/hardening.log",
           "else",
               "CONTINUE=YES",
-          "fi"
+          "fi",
+
+          "echo \"PROMPT_COMMAND='history -a >(logger -p local1.notice -t \"[bash] $USER\")'\" >> /etc/bashrc",
+          "printf \"",
+          "# command line audit logging",
+          "local1.* -/var/log/commands.log\"  >> /etc/rsyslog.conf",
+          "systemctl restart --now rsyslog",
+          "printf \"",
+          "/var/log/commands.log {",
+              "rotate 4",
+              "weekly",
+              "missingok",
+              "notifempty",
+              "compress",
+              "delaycompress",
+              "sharedscripts",
+              "postrotate",
+                  "/usr/lib/rsyslog/rsyslog-rotate",
+              "endscript",
+          "}",
+          "\" >> /etc/logrotate.d/bashCommandsCollection_SISA"
+
         ]
       }
     }
